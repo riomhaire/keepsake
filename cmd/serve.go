@@ -30,7 +30,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var VERSION = "0.0.4"
+
 
 // serveCmd represents the serve command
 var serveCmd = &cobra.Command{
