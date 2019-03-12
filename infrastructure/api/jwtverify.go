@@ -1,11 +1,11 @@
 package api
 
 import (
-	"encoding/base64"
 	"encoding/json"
 	"net/http"
 	"strings"
 
+	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/riomhaire/keepsake/models"
 	"github.com/riomhaire/keepsake/models/oauth2"
 )
@@ -30,7 +30,7 @@ func (r *RestAPI) HandleVerifyJWTViaRSA(w http.ResponseWriter, req *http.Request
 		return
 	}
 
-	// Now Validate token parameter
+	// Now Validate token parameter and look up issuer so we can verify it
 	tokenString, ok := req.URL.Query()["token"]
 
 	if !ok || len(tokenString) == 0 {
@@ -38,28 +38,25 @@ func (r *RestAPI) HandleVerifyJWTViaRSA(w http.ResponseWriter, req *http.Request
 		return
 	}
 
-	// ok find issuer in token and look it up
-	parts := strings.Split(tokenString[0], ".")
-	if len(parts) != 3 {
-		handleJWTError(w, http.StatusUnauthorized, models.JWTErrorResponse{"Unauthorized", err.Error()})
+	rawtoken, _ := jwt.Parse(tokenString[0], nil)
+	if rawtoken == nil {
+		handleError(w, http.StatusUnauthorized, oauth2.ErrorResponse{"Unauthorized", "cannot parse token", ""})
 		return
 	}
-	// Part 1 is base64 json
-	j, err := base64.StdEncoding.DecodeString(parts[1])
-	if err != nil {
-		handleJWTError(w, http.StatusUnauthorized, models.JWTErrorResponse{"Unauthorized", err.Error()})
+	// extract claims and lookup issuer
+	claims, ok := rawtoken.Claims.(jwt.MapClaims)
+	if !ok {
+		handleError(w, http.StatusUnauthorized, oauth2.ErrorResponse{"Unauthorized", "cannot parse token", ""})
 		return
 
 	}
-	claims := make(map[string]interface{})
-	err = json.Unmarshal(j, &claims)
-	// Lookup issuer
-	issuer := claims["iss"]
-	if issuer == nil {
+	issuer := string(claims["iss"].(string))
+	if issuer == "" {
 		handleJWTError(w, http.StatusBadRequest, models.JWTErrorResponse{"Bad Request", "No Issuer"})
 		return
 	}
-	certificates, err := r.ClientStore.FindPublicPrivateKey(issuer.(string))
+
+	certificates, err := r.ClientStore.FindPublicPrivateKey(issuer)
 	if err != nil {
 		handleJWTError(w, http.StatusBadRequest, models.JWTErrorResponse{"Bad Request", err.Error()})
 		return
@@ -70,7 +67,8 @@ func (r *RestAPI) HandleVerifyJWTViaRSA(w http.ResponseWriter, req *http.Request
 		handleJWTError(w, http.StatusBadRequest, models.JWTErrorResponse{"Bad Request", "No Public Certificate For That Issuer"})
 		return
 	}
-	_, err = r.JWTEncoderDecoder.Decode(certificates.PublicKey, tokenString[0])
+
+	claims, err = r.JWTEncoderDecoder.Decode(certificates.PublicKey, tokenString[0])
 	if err != nil {
 		handleJWTError(w, http.StatusBadRequest, models.JWTErrorResponse{"Bad Request", err.Error()})
 		return

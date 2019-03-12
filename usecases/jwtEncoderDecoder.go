@@ -2,8 +2,6 @@ package usecases
 
 import (
 	"crypto/x509"
-	"encoding/base64"
-	"encoding/json"
 	"encoding/pem"
 	"errors"
 	"strings"
@@ -58,13 +56,18 @@ func (s *JWTEncoderDecoder) Decode(pemString string, tokenString string) (claims
 	if err != nil {
 		return
 	}
-
-	// Part 1 is base64 json
-	j, err := base64.StdEncoding.DecodeString(parts[1])
-	if err == nil {
-		err = json.Unmarshal(j, &claims)
-
+	// decode
+	rawtoken, _ := jwt.Parse(tokenString, nil)
+	if rawtoken == nil {
+		err = errors.New("cannot parse token")
+		return
 	}
 
+	var ok bool
+	claims, ok = rawtoken.Claims.(jwt.MapClaims)
+	if !ok {
+		err = errors.New("cannot parse token")
+
+	}
 	return
 }

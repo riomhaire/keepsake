@@ -3,7 +3,7 @@ configurationType: file
 clientCredentialsType: file
 issuer: test
 masterSecret: shush
-timeToLiveSeconds: 300
+timeToLiveSeconds: 3600
 clientCredentials:
   - clientID: test
     clientSecret: gremlin
