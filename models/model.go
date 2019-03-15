@@ -11,16 +11,25 @@ type CertificateCredential struct {
 	PrivateKey string `yaml:"privateKey" json:"privateKey"`
 }
 
+type ConsulConfiguration struct {
+	Enabled  bool   `yaml:",enabled,omitempty" json:"enabled,omitempty"`
+	Host     string `yaml:",host,omitempty" json:"host,omitempty"`
+	ConsulId string `yaml:",id,omitempty" json:"id,omitempty"`
+}
+
 type Configuration struct {
-	Port                      int32                   `yaml:",port" json:"port"`
-	ConfigurationType         string                  `yaml:",configurationType" json:"configurationType"`
-	MasterSecret              string                  `yaml:",masterSecret" json:"masterSecret"`
-	TimeToLiveSeconds         int32                   `yaml:",timeToLiveSeconds" json:"timeToLiveSeconds"`
-	Issuer                    string                  `yaml:",issuer" json:"issuer"`
-	ClientCredentialsType     string                  `yaml:",clientCredentialsType" json:"clientCredentialsType"`
-	ClientCredentials         []ClientCredential      `yaml:",clientCredentials" json:"clientCredentials"`
-	CertificateCredentialType string                  `yaml:",certificateCredentialType" json:"CcertificateCredentialType"`
-	CertificateCredentials    []CertificateCredential `yaml:",certificateCredential" json:"certificateCredential"`
+	ApplicationName           string                  `yaml:",applicationName,omitempty" json:"applicationName,omitempty"`
+	Version                   string                  `yaml:",applicationVersion,omitempty" json:"applicationVersion,omitempty"`
+	Port                      int                     `yaml:",port,omitempty" json:"port,omitempty"`
+	ConfigurationType         string                  `yaml:",configurationType,omitempty" json:"configurationType,omitempty"`
+	MasterSecret              string                  `yaml:",masterSecret,omitempty" json:"masterSecret,omitempty"`
+	TimeToLiveSeconds         int32                     `yaml:",timeToLiveSeconds,omitempty" json:"timeToLiveSeconds,omitempty"`
+	Issuer                    string                  `yaml:",issuer,omitempty" json:"issuer,omitempty"`
+	ClientCredentialsType     string                  `yaml:",clientCredentialsType,omitempty" json:"clientCredentialsType,omitempty"`
+	ClientCredentials         []ClientCredential      `yaml:",clientCredentials,omitempty" json:"clientCredentials,omitempty"`
+	CertificateCredentialType string                  `yaml:",certificateCredentialType,omitempty" json:"CcertificateCredentialType,omitempty"`
+	CertificateCredentials    []CertificateCredential `yaml:",certificateCredential,omitempty" json:"certificateCredential,omitempty"`
+	Consul                    ConsulConfiguration     `yaml:",consul,omitempty" json:"consul,omitempty"`
 }
 
 type JWTSignResponse struct {

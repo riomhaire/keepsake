@@ -15,6 +15,6 @@ type TokenEncoderDecoder interface {
 }
 
 type JWTEncoderDecoder interface {
-	Sign(pemString string, claims jwt.MapClaims) (jwt string, err error)
-	Decode(pemString string, tokenString string) (claims jwt.MapClaims, err error)
+	Sign(claims jwt.MapClaims) (jwt string, err error)
+	Decode(tokenString string) (claims jwt.MapClaims, err error)
 }

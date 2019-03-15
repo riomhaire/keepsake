@@ -12,6 +12,13 @@ build: dependencies
 	@cp keepsake ${GOPATH}/bin
 	@echo Done Compiling Apps
 
+buildarm: dependencies
+	@echo Compiling Apps
+	@echo   --- keepsake 
+	@GOOS=linux GOARCH=arm GOARM=5  go build -o keepsake-arm --ldflags="-s -w" github.com/riomhaire/keepsake
+	@upx  keepsake-arm
+	@echo Done Compiling Apps
+
 test:
 	@echo Running Unit Tests
 	@go test ./...

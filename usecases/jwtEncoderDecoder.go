@@ -8,21 +8,39 @@ import (
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
+	"github.com/riomhaire/keepsake/models"
 )
 
 type JWTEncoderDecoder struct {
-	ttl int32
+	storageInteractor models.StorageInteractor
+	ttl               int32
 }
 
-func NewJWTEncoderDecoder(ttl int32) (encoderDecoder *JWTEncoderDecoder) {
-	encoderDecoder = &JWTEncoderDecoder{ttl}
+func NewJWTEncoderDecoder(ttl int32, storageInteractor models.StorageInteractor) (encoderDecoder *JWTEncoderDecoder) {
+	encoderDecoder = &JWTEncoderDecoder{storageInteractor, ttl}
 
 	return
 }
 
-func (s *JWTEncoderDecoder) Sign(pemString string, claims jwt.MapClaims) (jwtString string, err error) {
+func (s *JWTEncoderDecoder) Sign(claims jwt.MapClaims) (jwtString string, err error) {
 
-	block, _ := pem.Decode([]byte(pemString))
+	// Lookup issuer
+	issuer := claims["iss"]
+	if issuer == nil {
+		err = errors.New("No Issuer")
+		return
+	}
+	certificates, err := s.storageInteractor.FindPublicPrivateKey(issuer.(string))
+	if err != nil {
+		return
+	}
+	// Sign Content if we have a private key
+	if len(certificates.PrivateKey) == 0 {
+		err = errors.New("No Private Certificate For That Issuer")
+		return
+	}
+
+	block, _ := pem.Decode([]byte(certificates.PrivateKey))
 	key, _ := x509.ParsePKCS1PrivateKey(block.Bytes)
 
 	// create a signer for rsa 256
@@ -37,8 +55,38 @@ func (s *JWTEncoderDecoder) Sign(pemString string, claims jwt.MapClaims) (jwtStr
 	return
 }
 
-func (s *JWTEncoderDecoder) Decode(pemString string, tokenString string) (claims jwt.MapClaims, err error) {
-	block, _ := pem.Decode([]byte(pemString))
+func (s *JWTEncoderDecoder) Decode(tokenString string) (claims jwt.MapClaims, err error) {
+
+	rawtoken, _ := jwt.Parse(tokenString, nil)
+	if rawtoken == nil {
+		err = errors.New("cannot parse token")
+		return
+	}
+	// extract claims and lookup issuer
+	claims, ok := rawtoken.Claims.(jwt.MapClaims)
+	if !ok {
+		err = errors.New("cannot parse token")
+		return
+
+	}
+	issuer := string(claims["iss"].(string))
+	if issuer == "" {
+		err = errors.New("No Issuer")
+		return
+	}
+
+	certificates, err := s.storageInteractor.FindPublicPrivateKey(issuer)
+	if err != nil {
+		return
+	}
+
+	// Verify Content if we have a public key
+	if len(certificates.PublicKey) == 0 {
+		err = errors.New("No Public Certificate For That Issuer")
+		return
+	}
+
+	block, _ := pem.Decode([]byte(certificates.PublicKey))
 	if block == nil || block.Type != "PUBLIC KEY" {
 		err = errors.New("failed to decode PEM block containing public key")
 		return
@@ -55,19 +103,6 @@ func (s *JWTEncoderDecoder) Decode(pemString string, tokenString string) (claims
 	err = method.Verify(strings.Join(parts[0:2], "."), parts[2], publicKey)
 	if err != nil {
 		return
-	}
-	// decode
-	rawtoken, _ := jwt.Parse(tokenString, nil)
-	if rawtoken == nil {
-		err = errors.New("cannot parse token")
-		return
-	}
-
-	var ok bool
-	claims, ok = rawtoken.Claims.(jwt.MapClaims)
-	if !ok {
-		err = errors.New("cannot parse token")
-
 	}
 	return
 }

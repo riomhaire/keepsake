@@ -5,7 +5,6 @@ import (
 	"net/http"
 	"strings"
 
-	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/riomhaire/keepsake/models"
 	"github.com/riomhaire/keepsake/models/oauth2"
 )
@@ -38,39 +37,9 @@ func (r *RestAPI) HandleVerifyJWTViaRSA(w http.ResponseWriter, req *http.Request
 		return
 	}
 
-	rawtoken, _ := jwt.Parse(tokenString[0], nil)
-	if rawtoken == nil {
-		handleError(w, http.StatusUnauthorized, oauth2.ErrorResponse{"Unauthorized", "cannot parse token", ""})
-		return
-	}
-	// extract claims and lookup issuer
-	claims, ok := rawtoken.Claims.(jwt.MapClaims)
-	if !ok {
-		handleError(w, http.StatusUnauthorized, oauth2.ErrorResponse{"Unauthorized", "cannot parse token", ""})
-		return
-
-	}
-	issuer := string(claims["iss"].(string))
-	if issuer == "" {
-		handleJWTError(w, http.StatusBadRequest, models.JWTErrorResponse{"Bad Request", "No Issuer"})
-		return
-	}
-
-	certificates, err := r.ClientStore.FindPublicPrivateKey(issuer)
+	claims, err := r.JWTEncoderDecoder.Decode(tokenString[0])
 	if err != nil {
-		handleJWTError(w, http.StatusBadRequest, models.JWTErrorResponse{"Bad Request", err.Error()})
-		return
-	}
-
-	// Verify Content if we have a public key
-	if len(certificates.PublicKey) == 0 {
-		handleJWTError(w, http.StatusBadRequest, models.JWTErrorResponse{"Bad Request", "No Public Certificate For That Issuer"})
-		return
-	}
-
-	claims, err = r.JWTEncoderDecoder.Decode(certificates.PublicKey, tokenString[0])
-	if err != nil {
-		handleJWTError(w, http.StatusBadRequest, models.JWTErrorResponse{"Bad Request", err.Error()})
+		handleJWTError(w, http.StatusUnauthorized, models.JWTErrorResponse{"Bad Request", err.Error()})
 		return
 
 	}

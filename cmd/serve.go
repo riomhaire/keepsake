@@ -24,13 +24,13 @@ import (
 	"github.com/dgrijalva/jwt-go"
 	"github.com/ghodss/yaml"
 	"github.com/riomhaire/keepsake/infrastructure/api"
+	"github.com/riomhaire/keepsake/infrastructure/facades/serviceregistry/consulagent"
+	"github.com/riomhaire/keepsake/infrastructure/facades/serviceregistry/defaultserviceregistry"
 	"github.com/riomhaire/keepsake/infrastructure/facades/storage"
 	"github.com/riomhaire/keepsake/models"
 	"github.com/riomhaire/keepsake/usecases"
 	"github.com/spf13/cobra"
 )
-
-
 
 // serveCmd represents the serve command
 var serveCmd = &cobra.Command{
@@ -53,13 +53,20 @@ var serveCmd = &cobra.Command{
 		if err != nil {
 			log.Fatal(err)
 		}
+		config.Version = VERSION
 
 		// Setup API
-		tokenEncoderDecoder := usecases.NewTokenEncoderDecoder(jwt.SigningMethodHS256, config.MasterSecret, config.TimeToLiveSeconds)
-		jwtEncoderDecoder := usecases.NewJWTEncoderDecoder(config.TimeToLiveSeconds)
 		storageInteractor := storage.NewConfigurationStorageIntegrator(&config)
+		tokenEncoderDecoder := usecases.NewTokenEncoderDecoder(jwt.SigningMethodHS256, config.MasterSecret, config.TimeToLiveSeconds)
+		jwtEncoderDecoder := usecases.NewJWTEncoderDecoder(config.TimeToLiveSeconds, storageInteractor)
 
 		rest := api.NewRestAPI(&config, tokenEncoderDecoder, jwtEncoderDecoder, storageInteractor)
+		// Do we need external registry
+		if config.Consul.Enabled {
+			rest.ExternalServiceRegistry = consulagent.NewConsulServiceRegistry(&config, "/api/v2/token", "/api/v2/token/health")
+		} else {
+			rest.ExternalServiceRegistry = defaultserviceregistry.NewDefaultServiceRegistry()
+		}
 
 		// Setup Shutdown
 		p := make(chan os.Signal, 2)
@@ -69,6 +76,7 @@ var serveCmd = &cobra.Command{
 		go func() {
 			<-p
 			log.Println("Shutting Down")
+			rest.Stop()
 			os.Exit(0)
 		}()
 
@@ -79,14 +87,5 @@ var serveCmd = &cobra.Command{
 
 func init() {
 	rootCmd.AddCommand(serveCmd)
-
-	// Here you will define your flags and configuration settings.
-
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// serveCmd.PersistentFlags().String("foo", "", "A help for foo")
-
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
 	serveCmd.Flags().StringP("configuration", "c", "keepsake.yaml", "Where config file is located")
 }

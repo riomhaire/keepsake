@@ -42,25 +42,8 @@ func (r *RestAPI) HandleSignJSONViaRSA(w http.ResponseWriter, req *http.Request)
 		return
 	}
 
-	// Lookup issuer
-	issuer := claims["iss"]
-	if issuer == nil {
-		handleJWTError(w, http.StatusBadRequest, models.JWTErrorResponse{"Bad Request", "No Issuer"})
-		return
-	}
-	certificates, err := r.ClientStore.FindPublicPrivateKey(issuer.(string))
-	if err != nil {
-		handleJWTError(w, http.StatusBadRequest, models.JWTErrorResponse{"Bad Request", err.Error()})
-		return
-	}
-	// Sign Content if we have a private key
-	if len(certificates.PrivateKey) == 0 {
-		handleJWTError(w, http.StatusBadRequest, models.JWTErrorResponse{"Bad Request", "No Private Certificate For That Issuer"})
-		return
-	}
-
 	// OK Sign
-	token, err := r.JWTEncoderDecoder.Sign(certificates.PrivateKey, claims)
+	token, err := r.JWTEncoderDecoder.Sign(claims)
 	if err != nil {
 		handleJWTError(w, http.StatusBadRequest, models.JWTErrorResponse{"Bad Request", err.Error()})
 		return
