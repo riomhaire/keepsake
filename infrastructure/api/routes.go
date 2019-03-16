@@ -23,6 +23,8 @@ func (a *RestAPI) defineRoutes() {
 	mux.HandleFunc("/api/v2/token/jwt/verify", a.HandleVerifyJWTViaRSA).Methods("GET")
 	mux.HandleFunc("/api/v2/token/health", a.HandleHealth).Methods("GET")
 	mux.HandleFunc("/health", a.HandleHealth).Methods("GET")
+	mux.HandleFunc("/api/v2/token/bvt", a.HandleBVT).Methods("GET")
+	mux.HandleFunc("/bvt", a.HandleBVT).Methods("GET")
 	mux.Handle("/metrics", prometheus.Handler())
 	negroni.UseFunc(a.AddWorkerHeader)  // Add which instance
 	negroni.UseFunc(a.AddWorkerVersion) // Which version
