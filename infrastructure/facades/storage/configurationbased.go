@@ -27,7 +27,7 @@ func (s *ConfigurationStorageInteractor) FindClientCredential(clientID string) (
 			return
 		}
 	}
-	err = errors.New("Unknown ClientID")
+	err = errors.New("unknown client id")
 	return
 }
 
@@ -46,6 +46,6 @@ func (s *ConfigurationStorageInteractor) FindPublicPrivateKey(clientID string) (
 			return
 		}
 	}
-	err = errors.New("Unknown ClientID")
+	err = errors.New("unknown client id")
 	return
 }

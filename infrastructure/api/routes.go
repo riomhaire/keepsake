@@ -4,31 +4,31 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/urfave/negroni"
-	negroniprometheus "github.com/zbindenren/negroni-prometheus"
+	"github.com/zbindenren/negroni-prometheus"
 )
 
-func (a *RestAPI) defineRoutes() {
-	negroni := negroni.Classic()
-	prometheusService := negroniprometheus.NewMiddleware(a.Configuration.ApplicationName, 60, 300, 1200, 3600)
+func (this *RestAPI) defineRoutes() {
+	rest := negroni.Classic()
+	prometheusService := negroniprometheus.NewMiddleware(this.Configuration.ApplicationName, 60, 300, 1200, 3600)
 	// if you want to use other buckets than the default (300, 1200, 5000) you can run:
 	// m := negroniprometheus.NewMiddleware("serviceName", 400, 1600, 700)
 
-	mux := mux.NewRouter()
-	negroni.Use(prometheusService)
+	router := mux.NewRouter()
+	rest.Use(prometheusService)
 
 	// Add handlers
-	mux.HandleFunc("/api/v2/token/oauth/authorize", a.HandleAuthorize).Methods("POST")
-	mux.HandleFunc("/api/v2/token/oauth/verify", a.HandleVerify).Methods("GET")
-	mux.HandleFunc("/api/v2/token/jwt/sign", a.HandleSignJSONViaRSA).Methods("POST")
-	mux.HandleFunc("/api/v2/token/jwt/verify", a.HandleVerifyJWTViaRSA).Methods("GET")
-	mux.HandleFunc("/api/v2/token/health", a.HandleHealth).Methods("GET")
-	mux.HandleFunc("/health", a.HandleHealth).Methods("GET")
-	mux.HandleFunc("/api/v2/token/bvt", a.HandleBVT).Methods("GET")
-	mux.HandleFunc("/bvt", a.HandleBVT).Methods("GET")
-	mux.Handle("/metrics", prometheus.Handler())
-	negroni.UseFunc(a.AddWorkerHeader)  // Add which instance
-	negroni.UseFunc(a.AddWorkerVersion) // Which version
-	negroni.UseHandler(mux)
+	router.HandleFunc("/api/v2/token/oauth/authorize", this.HandleAuthorize).Methods("POST")
+	router.HandleFunc("/api/v2/token/oauth/verify", this.HandleVerify).Methods("GET")
+	router.HandleFunc("/api/v2/token/jwt/sign", this.HandleSignJSONViaRSA).Methods("POST")
+	router.HandleFunc("/api/v2/token/jwt/verify", this.HandleVerifyJWTViaRSA).Methods("GET")
+	router.HandleFunc("/api/v2/token/health", this.HandleHealth).Methods("GET")
+	router.HandleFunc("/health", this.HandleHealth).Methods("GET")
+	router.HandleFunc("/api/v2/token/bvt", this.HandleBVT).Methods("GET")
+	router.HandleFunc("/bvt", this.HandleBVT).Methods("GET")
+	router.Handle("/metrics", prometheus.Handler())
+	rest.UseFunc(this.AddWorkerHeader)  // Add which instance
+	rest.UseFunc(this.AddWorkerVersion) // Which version
+	rest.UseHandler(router)
 
-	a.Negroni = negroni
+	this.Negroni = rest
 }

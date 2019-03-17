@@ -27,7 +27,7 @@ func (s *JWTEncoderDecoder) Sign(claims jwt.MapClaims) (jwtString string, err er
 	// Lookup issuer
 	issuer := claims["iss"]
 	if issuer == nil {
-		err = errors.New("No Issuer")
+		err = errors.New("no issuer")
 		return
 	}
 	certificates, err := s.storageInteractor.FindPublicPrivateKey(issuer.(string))
@@ -36,7 +36,7 @@ func (s *JWTEncoderDecoder) Sign(claims jwt.MapClaims) (jwtString string, err er
 	}
 	// Sign Content if we have a private key
 	if len(certificates.PrivateKey) == 0 {
-		err = errors.New("No Private Certificate For That Issuer")
+		err = errors.New("no private certificate for that issuer")
 		return
 	}
 
@@ -71,7 +71,7 @@ func (s *JWTEncoderDecoder) Decode(tokenString string) (claims jwt.MapClaims, er
 	}
 	issuer := string(claims["iss"].(string))
 	if issuer == "" {
-		err = errors.New("No Issuer")
+		err = errors.New("no issuer")
 		return
 	}
 
@@ -82,13 +82,13 @@ func (s *JWTEncoderDecoder) Decode(tokenString string) (claims jwt.MapClaims, er
 
 	// Verify Content if we have a public key
 	if len(certificates.PublicKey) == 0 {
-		err = errors.New("No Public Certificate For That Issuer")
+		err = errors.New("no public certificate for that issuer")
 		return
 	}
 
 	block, _ := pem.Decode([]byte(certificates.PublicKey))
 	if block == nil || block.Type != "PUBLIC KEY" {
-		err = errors.New("failed to decode PEM block containing public key")
+		err = errors.New("failed to decode pem block containing public key")
 		return
 	}
 

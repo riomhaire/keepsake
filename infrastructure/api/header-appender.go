@@ -6,7 +6,7 @@ import (
 )
 
 // AddWorkerHeader - adds header of which node actually processed request
-func (r *RestAPI) AddWorkerHeader(rw http.ResponseWriter, req *http.Request, next http.HandlerFunc) {
+func (this *RestAPI) AddWorkerHeader(rw http.ResponseWriter, req *http.Request, next http.HandlerFunc) {
 	host, err := os.Hostname()
 	if err != nil {
 		host = "Unknown"
@@ -18,8 +18,8 @@ func (r *RestAPI) AddWorkerHeader(rw http.ResponseWriter, req *http.Request, nex
 }
 
 // AddWorkerVersion - adds header of which version is installed
-func (r *RestAPI) AddWorkerVersion(rw http.ResponseWriter, req *http.Request, next http.HandlerFunc) {
-	version := r.Configuration.Version
+func (this *RestAPI) AddWorkerVersion(rw http.ResponseWriter, req *http.Request, next http.HandlerFunc) {
+	version := this.Configuration.Version
 	if len(version) == 0 {
 		version = "UNKNOWN"
 	}
@@ -30,7 +30,7 @@ func (r *RestAPI) AddWorkerVersion(rw http.ResponseWriter, req *http.Request, ne
 }
 
 // AddWorkerHeader - adds coors header
-func (r *RestAPI) AddCoorsHeader(rw http.ResponseWriter, request *http.Request, next http.HandlerFunc) {
+func (this *RestAPI) AddCoorsHeader(rw http.ResponseWriter, request *http.Request, next http.HandlerFunc) {
 
 	//rw.Header().Add("Access-Control-Allow-Origin", request.Header.Get("Origin"))
 	rw.Header().Add("Access-Control-Allow-Credentials", "true")

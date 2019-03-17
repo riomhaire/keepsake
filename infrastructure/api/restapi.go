@@ -31,15 +31,15 @@ func NewRestAPI(configuration *models.Configuration, tokenizer models.TokenEncod
 	return api
 }
 
-func (a *RestAPI) Start() {
-	if a.Configuration.Port == 0 {
-		a.Configuration.Port = 10101
+func (this *RestAPI) Start() {
+	if this.Configuration.Port == 0 {
+		this.Configuration.Port = 10101
 	}
-	a.ExternalServiceRegistry.Register()
-	a.Negroni.Run(fmt.Sprintf(":%d", a.Configuration.Port))
+	this.ExternalServiceRegistry.Register()
+	this.Negroni.Run(fmt.Sprintf(":%d", this.Configuration.Port))
 }
 
-func (a *RestAPI) Stop() {
+func (this *RestAPI) Stop() {
 	log.Println("Shutting Down REST API")
-	a.ExternalServiceRegistry.Deregister()
+	this.ExternalServiceRegistry.Deregister()
 }

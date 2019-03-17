@@ -9,21 +9,21 @@ import (
 	"github.com/riomhaire/keepsake/models/oauth2"
 )
 
-func (r *RestAPI) HandleVerifyJWTViaRSA(w http.ResponseWriter, req *http.Request) {
+func (this *RestAPI) HandleVerifyJWTViaRSA(w http.ResponseWriter, req *http.Request) {
 	bearer := "bearer "
 	bearer1 := "Bearer "
 
 	// Verify Authorization token (bearer)
 	authorizationToken := req.Header.Get("Authorization")
 	if len(authorizationToken) == 0 || !(strings.HasPrefix(authorizationToken, bearer) || strings.HasPrefix(authorizationToken, bearer1)) {
-		handleJWTError(w, http.StatusUnauthorized, models.JWTErrorResponse{"Unauthorized", "you need a valid authorization token to use this api"})
+		handleJWTError(w, http.StatusUnauthorized, models.JWTErrorResponse{Error: "Unauthorized", Description: "you need a valid authorization token to use this api"})
 		return
 	}
 	// strip off bearer and verify
 	authorizationToken = string(authorizationToken[len(bearer):])
 
 	// Should check claims has permissions/roles etc
-	_, err := r.TokenEncoderDecoder.Decode(authorizationToken)
+	_, err := this.TokenEncoderDecoder.Decode(authorizationToken)
 	if err != nil {
 		handleJWTError(w, http.StatusUnauthorized, models.JWTErrorResponse{"Unauthorized", err.Error()})
 		return
@@ -37,7 +37,7 @@ func (r *RestAPI) HandleVerifyJWTViaRSA(w http.ResponseWriter, req *http.Request
 		return
 	}
 
-	claims, err := r.JWTEncoderDecoder.Decode(tokenString[0])
+	claims, err := this.JWTEncoderDecoder.Decode(tokenString[0])
 	if err != nil {
 		handleJWTError(w, http.StatusUnauthorized, models.JWTErrorResponse{"Bad Request", err.Error()})
 		return

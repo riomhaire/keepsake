@@ -19,23 +19,23 @@ func NewTokenEncoderDecoder(method jwt.SigningMethod, secret string, timetolive 
 	return
 }
 
-func (g *SimpleTokenEncoderDecoder) Sign(claims jwt.MapClaims) (jwtString string, err error) {
+func (this *SimpleTokenEncoderDecoder) Sign(claims jwt.MapClaims) (jwtString string, err error) {
 	claims["iat"] = time.Now().Unix()
-	claims["exp"] = time.Now().Add(time.Second * time.Duration(g.ttl)).Unix()
+	claims["exp"] = time.Now().Add(time.Second * time.Duration(this.ttl)).Unix()
 	claims["jti"] = uuid.NewV4()
 
-	token := jwt.New(g.method)
+	token := jwt.New(this.method)
 	token.Claims = claims
 
 	// Sign and get the complete encoded token as a string using the secret
-	jwtString, err = token.SignedString([]byte(g.secret))
+	jwtString, err = token.SignedString([]byte(this.secret))
 	return
 }
 
 // Decode
-func (d *SimpleTokenEncoderDecoder) Decode(tokenString string) (claims jwt.MapClaims, err error) {
+func (this *SimpleTokenEncoderDecoder) Decode(tokenString string) (claims jwt.MapClaims, err error) {
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
-		return []byte(d.secret), nil
+		return []byte(this.secret), nil
 	})
 	if err != nil {
 		return

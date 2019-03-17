@@ -13,11 +13,11 @@ import (
 
 var lock sync.Mutex
 
-func (r *RestAPI) HandleBVT(w http.ResponseWriter, req *http.Request) {
+func (this *RestAPI) HandleBVT(w http.ResponseWriter, req *http.Request) {
 	w.Header().Set("Content-Type", "plain/text")
 
 	lock.Lock()
-	token, err := bvtAuthenticate(r.Configuration.Test.BaseURL, r.Configuration.ClientCredentials[0].ClientID, r.Configuration.ClientCredentials[0].ClientSecret)
+	token, err := bvtAuthenticate(this.Configuration.Test.BaseURL, this.Configuration.ClientCredentials[0].ClientID, this.Configuration.ClientCredentials[0].ClientSecret)
 	if err != nil {
 		log.Println("BVT > bvtAuthenticate failure", err.Error())
 		handleSimpleError(w, http.StatusForbidden, err.Error())
@@ -25,7 +25,7 @@ func (r *RestAPI) HandleBVT(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	err = bvtVerify(r.Configuration.Test.BaseURL, token)
+	err = bvtVerify(this.Configuration.Test.BaseURL, token)
 	if err != nil {
 		log.Println("BVT > bvtVerify failure", err.Error())
 		handleSimpleError(w, http.StatusUnauthorized, err.Error())
@@ -54,7 +54,7 @@ func bvtAuthenticate(host, id, secret string) (accesstoken string, err error) {
 	defer resp.Body.Close()
 	// Check status code
 	if resp.StatusCode != http.StatusOK {
-		err = errors.New("Authenticate failed")
+		err = errors.New("authenticate failed")
 		return
 	}
 	authenticateResponse := make(map[string]interface{})
@@ -62,7 +62,7 @@ func bvtAuthenticate(host, id, secret string) (accesstoken string, err error) {
 	json.Unmarshal(body, &authenticateResponse)
 	rawaccesstoken := authenticateResponse["access_token"]
 	if rawaccesstoken != nil {
-		accesstoken = (string(rawaccesstoken.(string)))
+		accesstoken = rawaccesstoken.(string)
 	}
 	return
 }
@@ -76,7 +76,7 @@ func bvtVerify(host, token string) (err error) {
 	}
 	defer verifyRespose.Body.Close()
 	if verifyRespose.StatusCode != http.StatusOK {
-		err = errors.New("Verify failed")
+		err = errors.New("verify failed")
 	}
 	return
 }

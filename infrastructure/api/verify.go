@@ -8,19 +8,19 @@ import (
 	"github.com/riomhaire/keepsake/models/oauth2"
 )
 
-func (r *RestAPI) HandleVerify(w http.ResponseWriter, req *http.Request) {
+func (this *RestAPI) HandleVerify(w http.ResponseWriter, req *http.Request) {
 	tokenString, ok := req.URL.Query()["token"]
 	tokenValue := ""
 	if !ok || len(tokenString) == 0 {
 		// OK lets usee bearer
 		reqToken := req.Header.Get("Authorization")
 		if len(reqToken) == 0 {
-			handleError(w, http.StatusUnauthorized, oauth2.ErrorResponse{"Unauthorized", "someone forgot parameter", ""})
+			handleError(w, http.StatusUnauthorized, oauth2.ErrorResponse{Error: "Unauthorized", Description: "someone forgot parameter"})
 			return
 		}
 		splitToken := strings.Split(reqToken, " ")
 		if len(splitToken) != 2 || splitToken[0] != "Bearer" {
-			handleError(w, http.StatusUnauthorized, oauth2.ErrorResponse{"Unauthorized", "unsupported token type", ""})
+			handleError(w, http.StatusUnauthorized, oauth2.ErrorResponse{Error: "Unauthorized", Description: "unsupported token type"})
 			return
 
 		}
@@ -30,9 +30,9 @@ func (r *RestAPI) HandleVerify(w http.ResponseWriter, req *http.Request) {
 		tokenValue = tokenString[0]
 	}
 	// Verify
-	token, err := r.TokenEncoderDecoder.Decode(tokenValue)
+	token, err := this.TokenEncoderDecoder.Decode(tokenValue)
 	if err != nil {
-		handleError(w, http.StatusUnauthorized, oauth2.ErrorResponse{"Unauthorized", err.Error(), ""})
+		handleError(w, http.StatusUnauthorized, oauth2.ErrorResponse{Error: "Unauthorized", Description: err.Error()})
 		return
 	}
 	w.WriteHeader(http.StatusOK) // unprocessable entity

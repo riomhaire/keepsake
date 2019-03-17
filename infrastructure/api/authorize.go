@@ -9,17 +9,17 @@ import (
 	"github.com/riomhaire/keepsake/models/oauth2"
 )
 
-var APPLICATION_JSON = "application/json"
+var ApplicationJson = "application/json"
 var FORM_ENCODED = "application/x-www-form-urlencoded"
 
-func (r *RestAPI) HandleAuthorize(w http.ResponseWriter, req *http.Request) {
+func (this *RestAPI) HandleAuthorize(w http.ResponseWriter, req *http.Request) {
 	//params := mux.Vars(req)
 	// Decode request
 	var authorizeRequest oauth2.AuthorizeRequest
 
 	// is this JSON or form post?
 	content_type := req.Header.Get("Content-Type")
-	if strings.Contains(content_type, APPLICATION_JSON) {
+	if strings.Contains(content_type, ApplicationJson) {
 		_ = json.NewDecoder(req.Body).Decode(&authorizeRequest)
 	} else if strings.Contains(content_type, FORM_ENCODED) {
 		req.ParseForm()
@@ -44,7 +44,7 @@ func (r *RestAPI) HandleAuthorize(w http.ResponseWriter, req *http.Request) {
 			}
 		}
 	} else {
-		handleError(w, http.StatusUnauthorized, oauth2.ErrorResponse{"Invalid Request", "invalid content type", ""})
+		handleError(w, http.StatusUnauthorized, oauth2.ErrorResponse{Error: "Invalid Request", Description: "invalid content type"})
 		return
 	}
 	// Call interactor - which one is dependent on whether password is present and claims
@@ -55,33 +55,33 @@ func (r *RestAPI) HandleAuthorize(w http.ResponseWriter, req *http.Request) {
 	//	log.Println("Authorize", authorizeRequest.GrantType, authorizeRequest.ClientID, authorizeRequest.ClientSecret)
 
 	// lookup client id
-	clientInfo, err := r.ClientStore.FindClientCredential(authorizeRequest.ClientID)
+	clientInfo, err := this.ClientStore.FindClientCredential(authorizeRequest.ClientID)
 	if err != nil {
-		handleError(w, http.StatusUnauthorized, oauth2.ErrorResponse{"Invalid Request", err.Error(), ""})
+		handleError(w, http.StatusUnauthorized, oauth2.ErrorResponse{Error: "Invalid Request", Description: err.Error()})
 		return
 	}
 	// Compare secret
 	if clientInfo.ClientSecret != authorizeRequest.ClientSecret {
 		// Generate error (if not match)
-		handleError(w, http.StatusUnauthorized, oauth2.ErrorResponse{"Invalid Request", "someones forgot something", ""})
+		handleError(w, http.StatusUnauthorized, oauth2.ErrorResponse{Error: "Invalid Request", Description: "someones forgot something"})
 		return
 	}
 
 	// Build token claims(if secret match)
 	claims := make(map[string]interface{})
-	claims["iss"] = r.Configuration.Issuer
+	claims["iss"] = this.Configuration.Issuer
 	claims["sub"] = authorizeRequest.ClientID
 
 	// Generate token
-	token, err = r.TokenEncoderDecoder.Sign(claims)
+	token, err = this.TokenEncoderDecoder.Sign(claims)
 
 	// Set result
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	if err != nil {
-		handleError(w, http.StatusUnauthorized, oauth2.ErrorResponse{"Invalid Request", err.Error(), ""})
+		handleError(w, http.StatusUnauthorized, oauth2.ErrorResponse{Error: "Invalid Request", Description: err.Error()})
 	} else {
 		authorizeResponse.AccessToken = token
-		authorizeResponse.ExpiresIn = r.Configuration.TimeToLiveSeconds
+		authorizeResponse.ExpiresIn = this.Configuration.TimeToLiveSeconds
 		authorizeResponse.TokenType = "bearer"
 
 		w.WriteHeader(http.StatusOK)
