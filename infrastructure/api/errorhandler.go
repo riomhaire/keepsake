@@ -21,3 +21,10 @@ func handleJWTError(w http.ResponseWriter, errorCode int, content models.JWTErro
 
 	json.NewEncoder(w).Encode(content)
 }
+
+func handleSimpleError(w http.ResponseWriter, errorCode int, content string) {
+	w.WriteHeader(errorCode) // unprocessable entity
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+
+	json.NewEncoder(w).Encode(content)
+}

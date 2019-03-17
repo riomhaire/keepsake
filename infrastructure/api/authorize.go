@@ -3,7 +3,6 @@ package api
 import (
 	"encoding/json"
 	"fmt"
-	"log"
 	"net/http"
 	"strings"
 
@@ -53,7 +52,7 @@ func (r *RestAPI) HandleAuthorize(w http.ResponseWriter, req *http.Request) {
 	var err error
 	var authorizeResponse oauth2.AuthorizeResponse
 
-	log.Println("Authorize", authorizeRequest.GrantType, authorizeRequest.ClientID, authorizeRequest.ClientSecret)
+	//	log.Println("Authorize", authorizeRequest.GrantType, authorizeRequest.ClientID, authorizeRequest.ClientSecret)
 
 	// lookup client id
 	clientInfo, err := r.ClientStore.FindClientCredential(authorizeRequest.ClientID)
