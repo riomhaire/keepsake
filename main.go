@@ -14,7 +14,7 @@
 
 package main
 
-import "github.com/riomhaire/keepsake/cmd"
+import "github.com/riomhaire/keepsake/infrastructure/cmd"
 
 func main() {
 	cmd.Execute()

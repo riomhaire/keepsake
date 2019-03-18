@@ -37,5 +37,5 @@ clean:
 	@rm -f coverage*.html
 	@find . -name "debug.test" -exec rm -f {} \;
 
-everything: clean build test profile  
+everything: clean build   
 	@echo Done
