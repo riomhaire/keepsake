@@ -35,8 +35,8 @@ func (this *RestAPI) HandleVerify(w http.ResponseWriter, req *http.Request) {
 		handleError(w, http.StatusUnauthorized, oauth2.ErrorResponse{Error: "Unauthorized", Description: err.Error()})
 		return
 	}
-	w.WriteHeader(http.StatusOK) // unprocessable entity
-	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-
+	w.Header().Add("Content-Type", "application/json; charset=UTF-8")
 	json.NewEncoder(w).Encode(token)
+	w.WriteHeader(http.StatusOK) // unprocessable entity
+
 }
