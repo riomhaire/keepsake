@@ -1,7 +1,9 @@
 package api
 
 import (
+	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"strings"
@@ -9,7 +11,7 @@ import (
 	"github.com/riomhaire/keepsake/models/oauth2"
 )
 
-var ApplicationJson = "application/json"
+var APPLICATION_JSON = "application/json"
 var FORM_ENCODED = "application/x-www-form-urlencoded"
 
 func (this *RestAPI) HandleAuthorize(w http.ResponseWriter, req *http.Request) {
@@ -19,7 +21,7 @@ func (this *RestAPI) HandleAuthorize(w http.ResponseWriter, req *http.Request) {
 
 	// is this JSON or form post?
 	content_type := req.Header.Get("Content-Type")
-	if strings.Contains(content_type, ApplicationJson) {
+	if strings.Contains(content_type, APPLICATION_JSON) {
 		_ = json.NewDecoder(req.Body).Decode(&authorizeRequest)
 	} else if strings.Contains(content_type, FORM_ENCODED) {
 		req.ParseForm()
@@ -47,9 +49,16 @@ func (this *RestAPI) HandleAuthorize(w http.ResponseWriter, req *http.Request) {
 		handleError(w, http.StatusUnauthorized, oauth2.ErrorResponse{Error: "Invalid Request", Description: "invalid content type"})
 		return
 	}
+	// If we have an Authorize header use it - trumps payload
+	clientid, clientsecret, err := parseBasicAuthorizeHeader(req.Header.Get("Authorization"))
+	if err == nil && len(clientid) > 0 {
+		// IF Client id was in the header then use that
+		authorizeRequest.ClientID = clientid
+		authorizeRequest.ClientSecret = clientsecret
+	}
+
 	// Call interactor - which one is dependent on whether password is present and claims
 	var token string
-	var err error
 	var authorizeResponse oauth2.AuthorizeResponse
 
 	//	log.Println("Authorize", authorizeRequest.GrantType, authorizeRequest.ClientID, authorizeRequest.ClientSecret)
@@ -71,6 +80,7 @@ func (this *RestAPI) HandleAuthorize(w http.ResponseWriter, req *http.Request) {
 	claims := make(map[string]interface{})
 	claims["iss"] = this.Configuration.Issuer
 	claims["sub"] = authorizeRequest.ClientID
+	claims["scope"] = clientInfo.Scope
 
 	// Generate token
 	token, err = this.TokenEncoderDecoder.Sign(claims)
@@ -95,4 +105,28 @@ func formFieldValue(params []string) string {
 		return ""
 	}
 	return params[0]
+}
+
+/**
+* Parses a basic authorization header and splits into client and secret. Returns error
+* if not
+**/
+func parseBasicAuthorizeHeader(authorization string) (clientid, clientsecret string, err error) {
+	auth := strings.SplitN(authorization, " ", 2)
+
+	if len(auth) != 2 || auth[0] != "Basic" {
+		err = errors.New("Basic encoding expected")
+		return
+	}
+
+	payload, _ := base64.StdEncoding.DecodeString(auth[1])
+	pair := strings.SplitN(string(payload), ":", 2)
+
+	if len(pair) != 2 {
+		err = errors.New("Basic encoding has two pieces")
+	} else {
+		clientid = pair[0]
+		clientsecret = pair[1]
+	}
+	return
 }

@@ -4,7 +4,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/urfave/negroni"
-	"github.com/zbindenren/negroni-prometheus"
+	negroniprometheus "github.com/zbindenren/negroni-prometheus"
 )
 
 func (this *RestAPI) defineRoutes() {
@@ -18,9 +18,9 @@ func (this *RestAPI) defineRoutes() {
 
 	// Add handlers
 	router.HandleFunc("/api/v2/token/oauth/authorize", this.HandleAuthorize).Methods("POST")
-	router.HandleFunc("/api/v2/token/oauth/verify", this.HandleVerify).Methods("GET")
+	router.HandleFunc("/api/v2/token/oauth/verify", this.HandleVerify).Methods("POST")
 	router.HandleFunc("/api/v2/token/jwt/sign", this.HandleSignJSONViaRSA).Methods("POST")
-	router.HandleFunc("/api/v2/token/jwt/verify", this.HandleVerifyJWTViaRSA).Methods("GET")
+	router.HandleFunc("/api/v2/token/jwt/verify", this.HandleVerifyJWTViaRSA).Methods("POST")
 	router.HandleFunc("/api/v2/token/health", this.HandleHealth).Methods("GET")
 	router.HandleFunc("/health", this.HandleHealth).Methods("GET")
 	router.HandleFunc("/api/v2/token/bvt", this.HandleBVT).Methods("GET")

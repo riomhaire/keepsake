@@ -4,6 +4,7 @@ import (
 	"crypto/x509"
 	"encoding/pem"
 	"errors"
+	"log"
 	"strings"
 	"time"
 
@@ -39,9 +40,13 @@ func (s *JWTEncoderDecoder) Sign(claims jwt.MapClaims) (jwtString string, err er
 		err = errors.New("no private certificate for that issuer")
 		return
 	}
+	log.Println(certificates.PrivateKey)
 
 	block, _ := pem.Decode([]byte(certificates.PrivateKey))
-	key, _ := x509.ParsePKCS1PrivateKey(block.Bytes)
+	key, err := x509.ParsePKCS1PrivateKey(block.Bytes)
+	if err != nil {
+		return
+	}
 
 	// create a signer for rsa 256
 	jwtSigner := jwt.New(jwt.GetSigningMethod("RS256"))

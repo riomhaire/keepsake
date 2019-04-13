@@ -2,6 +2,7 @@ package api
 
 import (
 	"encoding/json"
+	"io/ioutil"
 	"net/http"
 	"strings"
 
@@ -25,19 +26,38 @@ func (this *RestAPI) HandleVerifyJWTViaRSA(w http.ResponseWriter, req *http.Requ
 	// Should check claims has permissions/roles etc
 	_, err := this.TokenEncoderDecoder.Decode(authorizationToken)
 	if err != nil {
-		handleJWTError(w, http.StatusUnauthorized, models.JWTErrorResponse{"Unauthorized", err.Error()})
+		handleJWTError(w, http.StatusUnauthorized, models.JWTErrorResponse{"Unauthorized Token", err.Error()})
 		return
 	}
 
-	// Now Validate token parameter and look up issuer so we can verify it
-	tokenString, ok := req.URL.Query()["token"]
+	// Now Validate jwt parameter and look up issuer so we can verify it
+	// IF were a form overwrite value
+	content_type := req.Header.Get("Content-Type")
+	tokenString := ""
+	if strings.Contains(content_type, APPLICATION_JSON) {
+		// Convert JSON To Claims
+		var claims = make(map[string]interface{})
+		body, err := ioutil.ReadAll(req.Body)
+		if err != nil {
+			handleJWTError(w, http.StatusBadRequest, models.JWTErrorResponse{Error: "Bad Request", Description: err.Error()})
+			return
+		}
 
-	if !ok || len(tokenString) == 0 {
-		handleError(w, http.StatusUnauthorized, oauth2.ErrorResponse{"Unauthorized", "someone forgot parameter", ""})
+		err = json.Unmarshal(body, &claims)
+		if err != nil {
+			handleJWTError(w, http.StatusBadRequest, models.JWTErrorResponse{Error: "Bad Request", Description: err.Error()})
+			return
+		}
+		// Extract JWT
+		tokenString = string(claims["jwt"].(string))
+	}
+
+	if len(tokenString) == 0 {
+		handleError(w, http.StatusUnauthorized, oauth2.ErrorResponse{"Unauthorized", "someone forgot jwt payload parameter", ""})
 		return
 	}
 
-	claims, err := this.JWTEncoderDecoder.Decode(tokenString[0])
+	claims, err := this.JWTEncoderDecoder.Decode(tokenString)
 	if err != nil {
 		handleJWTError(w, http.StatusUnauthorized, models.JWTErrorResponse{"Bad Request", err.Error()})
 		return

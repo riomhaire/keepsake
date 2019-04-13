@@ -3,6 +3,7 @@ package models
 type ClientCredential struct {
 	ClientID     string `yaml:"clientID" json:"clientID"`
 	ClientSecret string `yaml:"clientSecret" json:"clientSecret"`
+	Scope        string `yaml:"scope,omitempty" json:"scope,omitempty"`
 }
 
 type CertificateCredential struct {

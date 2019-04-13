@@ -58,6 +58,7 @@ var serveCmd = &cobra.Command{
 		// Setup API
 		storageInteractor := storage.NewConfigurationStorageIntegrator(&config)
 		tokenEncoderDecoder := usecases.NewTokenEncoderDecoder(jwt.SigningMethodHS256, config.MasterSecret, config.TimeToLiveSeconds)
+		
 		jwtEncoderDecoder := usecases.NewJWTEncoderDecoder(config.TimeToLiveSeconds, storageInteractor)
 
 		rest := api.NewRestAPI(&config, tokenEncoderDecoder, jwtEncoderDecoder, storageInteractor)
