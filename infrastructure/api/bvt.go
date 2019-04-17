@@ -6,9 +6,10 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"sync"
+
+	log "github.com/sirupsen/logrus"
 )
 
 var lock sync.Mutex

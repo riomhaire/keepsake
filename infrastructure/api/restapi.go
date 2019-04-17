@@ -2,7 +2,8 @@ package api
 
 import (
 	"fmt"
-	"log"
+
+	log "github.com/sirupsen/logrus"
 
 	"github.com/riomhaire/keepsake/infrastructure/facades/serviceregistry"
 	"github.com/riomhaire/keepsake/models"

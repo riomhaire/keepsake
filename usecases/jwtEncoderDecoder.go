@@ -4,9 +4,10 @@ import (
 	"crypto/x509"
 	"encoding/pem"
 	"errors"
-	"log"
 	"strings"
 	"time"
+
+	log "github.com/sirupsen/logrus"
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/riomhaire/keepsake/models"

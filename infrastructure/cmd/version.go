@@ -15,19 +15,18 @@
 package cmd
 
 import (
-	"fmt"
-
+	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
 
-var VERSION = "0.0.21"
+var VERSION = "0.0.23"
 
 // versionCmd represents the version command
 var versionCmd = &cobra.Command{
 	Use:   "version",
 	Short: "Displays command version",
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("version ", VERSION)
+		log.Println("version ", VERSION)
 	},
 }
 

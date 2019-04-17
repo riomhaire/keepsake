@@ -2,8 +2,9 @@ package consulagent
 
 import (
 	"fmt"
-	"log"
 	"os"
+
+	log "github.com/sirupsen/logrus"
 
 	"github.com/riomhaire/consul"
 	"github.com/riomhaire/keepsake/models"

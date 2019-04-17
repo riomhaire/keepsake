@@ -2,13 +2,31 @@ package api
 
 import (
 	"github.com/gorilla/mux"
+	negronilogrus "github.com/meatballhat/negroni-logrus"
 	"github.com/prometheus/client_golang/prometheus"
+	log "github.com/sirupsen/logrus"
 	"github.com/urfave/negroni"
 	negroniprometheus "github.com/zbindenren/negroni-prometheus"
 )
 
 func (this *RestAPI) defineRoutes() {
-	rest := negroni.Classic()
+	// Includes some default middlewares to all routes
+	rest := negroni.New()
+	rest.Use(negroni.NewRecovery())
+
+	// add log
+	//	hook, err := lSyslog.NewSyslogHook("", "", syslog.LOG_DEBUG, "")
+	log.StandardLogger().SetFormatter(&log.TextFormatter{
+		DisableColors: true,
+		FullTimestamp: true,
+	})
+	//	log.StandardLogger().
+	// if err == nil {
+	// 	log.StandardLogger().Hooks.Add(hook)
+	// }
+
+	rest.Use(negronilogrus.NewMiddlewareFromLogger(log.StandardLogger(), this.Configuration.ApplicationName))
+
 	prometheusService := negroniprometheus.NewMiddleware(this.Configuration.ApplicationName, 60, 300, 1200, 3600)
 	// if you want to use other buckets than the default (300, 1200, 5000) you can run:
 	// m := negroniprometheus.NewMiddleware("serviceName", 400, 1600, 700)
