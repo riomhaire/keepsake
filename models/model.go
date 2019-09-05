@@ -36,6 +36,7 @@ type Configuration struct {
 	CertificateCredentials    []CertificateCredential `yaml:",certificateCredential,omitempty" json:"certificateCredential,omitempty"`
 	Consul                    ConsulConfiguration     `yaml:",consul,omitempty" json:"consul,omitempty"`
 	Test                      Test                    `yaml:",test,omitempty" json:"test,omitempty"`
+	JWKKey                    string                  `yaml:",jwkKey,omitempty" json:"jwkKey,omitempty"`
 }
 
 type JWTSignResponse struct {

@@ -14,17 +14,7 @@ func (this *RestAPI) defineRoutes() {
 	rest := negroni.New()
 	rest.Use(negroni.NewRecovery())
 
-	// add log
-	//	hook, err := lSyslog.NewSyslogHook("", "", syslog.LOG_DEBUG, "")
-	log.StandardLogger().SetFormatter(&log.TextFormatter{
-		DisableColors: true,
-		FullTimestamp: true,
-	})
-	//	log.StandardLogger().
-	// if err == nil {
-	// 	log.StandardLogger().Hooks.Add(hook)
-	// }
-
+	// add logrus
 	rest.Use(negronilogrus.NewMiddlewareFromLogger(log.StandardLogger(), this.Configuration.ApplicationName))
 
 	prometheusService := negroniprometheus.NewMiddleware(this.Configuration.ApplicationName, 60, 300, 1200, 3600)
@@ -41,6 +31,8 @@ func (this *RestAPI) defineRoutes() {
 	router.HandleFunc("/api/v2/token/jwt/verify", this.HandleVerifyJWTViaRSA).Methods("POST")
 	router.HandleFunc("/api/v2/token/health", this.HandleHealth).Methods("GET")
 	router.HandleFunc("/health", this.HandleHealth).Methods("GET")
+	router.HandleFunc("/api/v2/token/.wellknown/jwks.json", this.HandleJWKPublicGet).Methods("GET")
+	router.HandleFunc("/.wellknown/jwks.json", this.HandleJWKPublicGet).Methods("GET")
 	router.HandleFunc("/api/v2/token/bvt", this.HandleBVT).Methods("GET")
 	router.HandleFunc("/bvt", this.HandleBVT).Methods("GET")
 	router.Handle("/metrics", prometheus.Handler())

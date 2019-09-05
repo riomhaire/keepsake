@@ -17,15 +17,17 @@ type RestAPI struct {
 	Configuration           *models.Configuration
 	TokenEncoderDecoder     models.TokenEncoderDecoder
 	JWTEncoderDecoder       models.JWTEncoderDecoder
+	JWKEncoder              models.JWKEncoder
 	ClientStore             models.StorageInteractor
 	ExternalServiceRegistry serviceregistry.ServiceRegistry
 }
 
-func NewRestAPI(configuration *models.Configuration, tokenizer models.TokenEncoderDecoder, jwtizer models.JWTEncoderDecoder, storageInteractor models.StorageInteractor) RestAPI {
+func NewRestAPI(configuration *models.Configuration, tokenizer models.TokenEncoderDecoder, jwtizer models.JWTEncoderDecoder, jwkencoder models.JWKEncoder, storageInteractor models.StorageInteractor) RestAPI {
 	api := RestAPI{}
 	api.Configuration = configuration
 	api.TokenEncoderDecoder = tokenizer
 	api.JWTEncoderDecoder = jwtizer
+	api.JWKEncoder = jwkencoder
 	api.ClientStore = storageInteractor
 	api.defineRoutes()
 

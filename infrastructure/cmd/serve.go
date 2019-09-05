@@ -40,6 +40,8 @@ var serveCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 
 		c := cmd.Flag("configuration").Value.String()
+		// Init logrus
+		log.StandardLogger().SetFormatter(&log.JSONFormatter{PrettyPrint: false})
 		log.Println("Starting Service Keepsake", VERSION, "... reading configuration", c)
 
 		// read bootstap file
@@ -61,8 +63,9 @@ var serveCmd = &cobra.Command{
 		tokenEncoderDecoder := usecases.NewTokenEncoderDecoder(jwt.SigningMethodHS256, config.MasterSecret, config.TimeToLiveSeconds)
 
 		jwtEncoderDecoder := usecases.NewJWTEncoderDecoder(config.TimeToLiveSeconds, storageInteractor)
+		jwkEncoder := usecases.NewJWKEncoder(storageInteractor)
 
-		rest := api.NewRestAPI(&config, tokenEncoderDecoder, jwtEncoderDecoder, storageInteractor)
+		rest := api.NewRestAPI(&config, tokenEncoderDecoder, jwtEncoderDecoder, jwkEncoder,storageInteractor)
 		// Do we need external registry
 		if config.Consul.Enabled {
 			rest.ExternalServiceRegistry = consulagent.NewConsulServiceRegistry(&config, "/api/v2/token", "/api/v2/token/health")

@@ -7,8 +7,6 @@ import (
 	"strings"
 	"time"
 
-	log "github.com/sirupsen/logrus"
-
 	"github.com/dgrijalva/jwt-go"
 	"github.com/riomhaire/keepsake/models"
 )
@@ -41,7 +39,7 @@ func (s *JWTEncoderDecoder) Sign(claims jwt.MapClaims) (jwtString string, err er
 		err = errors.New("no private certificate for that issuer")
 		return
 	}
-	log.Println(certificates.PrivateKey)
+	//log.Println(certificates.PrivateKey)
 
 	block, _ := pem.Decode([]byte(certificates.PrivateKey))
 	key, err := x509.ParsePKCS1PrivateKey(block.Bytes)

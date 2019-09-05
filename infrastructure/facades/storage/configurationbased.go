@@ -49,3 +49,8 @@ func (s *ConfigurationStorageInteractor) FindPublicPrivateKey(clientID string) (
 	err = errors.New("unknown client id")
 	return
 }
+
+func (s *ConfigurationStorageInteractor) JWKPublicKeyName() (key string, err error) {
+	key = s.configuration.JWKKey
+	return
+}
