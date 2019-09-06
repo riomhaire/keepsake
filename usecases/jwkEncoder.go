@@ -22,7 +22,11 @@ func NewJWKEncoder(storageInteractor models.StorageInteractor) (encoder *JWKEnco
 }
 
 func (s *JWKEncoder) Encode() (jwks map[string]interface{}, err error) {
+	jwk := make(map[string]interface{})
 	jwks = make(map[string]interface{})
+
+	var values [1]map[string]interface{}
+
 	key, err := s.storageInteractor.JWKPublicKeyName()
 	if err != nil {
 		return
@@ -45,16 +49,20 @@ func (s *JWKEncoder) Encode() (jwks map[string]interface{}, err error) {
 		return
 	}
 	// convert to jwks
-	jwk, err := gojwk.PublicKey(publicKey)
+	jwkObj, err := gojwk.PublicKey(publicKey)
 	if err != nil {
 		return
 	}
 
-	jwks["kid"] = key
+	jwk["kid"] = key
 
-	jwks["kty"] = jwk.Kty
-	jwks["n"] = jwk.N
-	jwks["e"] = jwk.E
+	jwk["kty"] = jwkObj.Kty
+	jwk["n"] = jwkObj.N
+	jwk["e"] = jwkObj.E
+	jwk["alg"] = "RS256"
+
+	values[0] = jwk
+	jwks["keys"] = values
 
 	return
 }
